@@ -25,9 +25,13 @@ class MockTs(Dataset):
         """
         Generate next batch (x, y), generate y by lagging x (1 step)
         """
+        # print('self.t_max - self.t_min - n_steps * self.resolution:', self.t_max - self.t_min - n_steps * self.resolution)
         t0 = np.random.rand(batch_size, 1) * (self.t_max - self.t_min - n_steps * self.resolution)
+        # print('t0:', t0.shape, t0)
         Ts = t0 + np.arange(0., n_steps + 1) * self.resolution
+        # print('Ts:', Ts.shape, Ts)
         ys = self._time_series(Ts)
+        # print('ys:', ys.shape, ys)
         return ys[:, :-1].reshape(-1, n_steps, 1), ys[:, 1:].reshape(-1, n_steps, 1)
 
     @property
@@ -59,7 +63,8 @@ class MockTs(Dataset):
 
 class TimeSeries(Dataset):
     def __init__(self, pandas_df, one_hot_root_list=None, grouping_variable='category', scaler=None):
-        super().__init__()
+        # super().__init__()
+        super(TimeSeries, self).__init__()  # TODO python2
         self.data = pandas_df
         self.one_hot_root_list = one_hot_root_list
         self.grouping_variable = grouping_variable

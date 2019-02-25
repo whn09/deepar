@@ -13,7 +13,7 @@ logger = logging.getLogger('deepar')
 
 class DeepAR(NNModel):
     def __init__(self, ts_obj, steps_per_epoch=50, epochs=100, loss=gaussian_likelihood,
-                 optimizer='adam', with_custom_nn_structure=None):
+                 optimizer='adam', with_custom_nn_structure=None, batch_size=1):
 
         self.ts_obj = ts_obj
         self.inputs, self.z_sample = None, None
@@ -28,6 +28,7 @@ class DeepAR(NNModel):
             self.nn_structure = DeepAR.basic_structure
         self._output_layer_name = 'main_output'
         self.get_intermediate = None
+        self.batch_size = batch_size
 
     @staticmethod
     def basic_structure():
@@ -36,7 +37,8 @@ class DeepAR(NNModel):
         :return: inputs_shape (tuple), inputs (Tensor), [loc, scale] (a list of theta parameters
         of the target likelihood)
         """
-        input_shape = (20, 1)
+        # input_shape = (20, 1)
+        input_shape = (14, 97)  # TODO fit pegasus
         inputs = Input(shape=input_shape)
         x = LSTM(4, return_sequences=True)(inputs)
         x = Dense(3, activation='relu')(x)
@@ -48,7 +50,7 @@ class DeepAR(NNModel):
         model = Model(inputs, theta[0])
         model.compile(loss=self.loss(theta[1]), optimizer=self.optimizer)
         model.fit_generator(ts_generator(self.ts_obj,
-                                         input_shape[0]),
+                                         input_shape[0], batch_size=self.batch_size),
                             steps_per_epoch=self.steps_per_epoch,
                             epochs=self.epochs)
         if verbose:
@@ -75,7 +77,7 @@ class DeepAR(NNModel):
         return self.get_intermediate(input_list)
 
 
-def ts_generator(ts_obj, n_steps):
+def ts_generator(ts_obj, n_steps, batch_size=1):
     """
     This is a util generator function for Keras
     :param ts_obj: a Dataset child class object that implements the 'next_batch' method
@@ -83,5 +85,6 @@ def ts_generator(ts_obj, n_steps):
     :return:
     """
     while 1:
-        batch = ts_obj.next_batch(1, n_steps)
+        # batch = ts_obj.next_batch(1, n_steps)
+        batch = ts_obj.next_batch(batch_size, n_steps)
         yield batch[0], batch[1]
