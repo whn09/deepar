@@ -39,4 +39,5 @@ class GaussianLayer(Layer):
         """
         The assumption is the output ts is always one-dimensional
         """
-        return [(input_shape[0], self.output_dim), (input_shape[0], self.output_dim)]
+        # return [(input_shape[0], self.output_dim), (input_shape[0], self.output_dim)]
+        return [(input_shape[0], self.output_dim, 1), (input_shape[0], self.output_dim, 1)]  # TODO ?
