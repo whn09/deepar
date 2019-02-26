@@ -4,6 +4,7 @@ from keras.layers import Input, Dense, Input
 from keras.models import Model
 from keras.layers import LSTM
 from keras import backend as K
+import keras
 import logging
 from deepar.model.loss import gaussian_likelihood
 import numpy as np
@@ -53,14 +54,21 @@ class DeepAR(NNModel):
         loc, scale = GaussianLayer(1, name='main_output')(x)
         return input_shape, inputs, [loc, scale]
 
-    def instantiate_and_fit(self, verbose=False):
+    def instantiate_and_fit(self, log_dir=None, verbose=False):
         input_shape, inputs, theta = self.nn_structure()
         model = Model(inputs, theta[0])
         model.compile(loss=self.loss(theta[1]), optimizer=self.optimizer)
-        model.fit_generator(ts_generator(self.ts_obj,
-                                         input_shape[0], batch_size=self.batch_size),
-                            steps_per_epoch=self.steps_per_epoch,
-                            epochs=self.epochs)
+        if log_dir is not None:
+            tbCallBack = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, rite_images=True)
+            model.fit_generator(ts_generator(self.ts_obj,
+                                             input_shape[0], batch_size=self.batch_size),
+                                steps_per_epoch=self.steps_per_epoch,
+                                epochs=self.epochs, callbacks=[tbCallBack])
+        else:
+            model.fit_generator(ts_generator(self.ts_obj,
+                                             input_shape[0], batch_size=self.batch_size),
+                                steps_per_epoch=self.steps_per_epoch,
+                                epochs=self.epochs)
         if verbose:
             logger.debug('Model was successfully trained')
         self.keras_model = model
