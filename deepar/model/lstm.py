@@ -59,7 +59,7 @@ class DeepAR(NNModel):
         model = Model(inputs, theta[0])
         model.compile(loss=self.loss(theta[1]), optimizer=self.optimizer)
         if log_dir is not None:
-            tbCallBack = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, rite_images=True)
+            tbCallBack = keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True)
             model.fit_generator(ts_generator(self.ts_obj,
                                              input_shape[0], batch_size=self.batch_size),
                                 steps_per_epoch=self.steps_per_epoch,
