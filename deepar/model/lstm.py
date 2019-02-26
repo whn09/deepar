@@ -9,11 +9,14 @@ from deepar.model.loss import gaussian_likelihood
 import numpy as np
 
 logger = logging.getLogger('deepar')
+g_n_steps = 1
+g_feature_num = 1
 
 
 class DeepAR(NNModel):
     def __init__(self, ts_obj, steps_per_epoch=50, epochs=100, loss=gaussian_likelihood,
-                 optimizer='adam', with_custom_nn_structure=None, batch_size=1):
+                 optimizer='adam', with_custom_nn_structure=None, batch_size=1, n_steps=1, feature_num=1):
+        global g_n_steps, g_feature_num
 
         self.ts_obj = ts_obj
         self.inputs, self.z_sample = None, None
@@ -22,6 +25,8 @@ class DeepAR(NNModel):
         self.loss = loss
         self.optimizer = optimizer
         self.keras_model = None
+        g_n_steps = n_steps
+        g_feature_num = feature_num
         if with_custom_nn_structure:
             self.nn_structure = with_custom_nn_structure
         else:
@@ -29,6 +34,8 @@ class DeepAR(NNModel):
         self._output_layer_name = 'main_output'
         self.get_intermediate = None
         self.batch_size = batch_size
+        self.n_steps = n_steps
+        self.feature_num = feature_num
 
     @staticmethod
     def basic_structure():
@@ -38,7 +45,8 @@ class DeepAR(NNModel):
         of the target likelihood)
         """
         # input_shape = (20, 1)
-        input_shape = (14, 97)  # TODO fit pegasus
+        # input_shape = (14, 97)  # TODO fit pegasus
+        input_shape = (g_n_steps, g_feature_num)
         inputs = Input(shape=input_shape)
         x = LSTM(4, return_sequences=True)(inputs)
         x = Dense(3, activation='relu')(x)
