@@ -2,6 +2,7 @@ from deepar.dataset import Dataset
 import numpy as np
 import pandas as pd
 import logging
+import time
 
 logger = logging.getLogger('deepar')
 
@@ -134,6 +135,7 @@ class TimeSeries(Dataset):
         :return: X (feature space), y
         """
 
+        # start = time.time()
         # Select n_batch time series
         groups_list = self.data[self.grouping_variable].unique()
         np.random.shuffle(groups_list)
@@ -166,6 +168,9 @@ class TimeSeries(Dataset):
             rnn_output['feature_1'] = batch_scaler.fit_transform(rnn_output.feature_1.values.reshape(n_rows, 1)).reshape(n_rows)
             rnn_output[target_var] = batch_scaler.fit_transform(rnn_output[target_var].values.reshape(n_rows, 1)).reshape(n_rows)
 
+        # end = time.time()
+        # print('next_batch time:', end-start)
+
         return rnn_output.drop(target_var, 1).as_matrix().reshape(batch_size, n_steps, -1), \
                rnn_output[target_var].as_matrix().reshape(batch_size, n_steps, 1)
 
@@ -181,14 +186,19 @@ class TimeSeries(Dataset):
         :return: X (feature space), y
         """
 
+        # start = time.time()
         # Select n_batch time series
         np.random.shuffle(self.groups_list)
         selected_groups = self.groups_list[:batch_size]
         input_data = self.data[self.data[self.grouping_variable].isin(set(selected_groups))]
 
+        # end1 = time.time()
+        # print('input_data time:', end1 - start)
+
         # Initial padding for each selected time series to reach n_steps
         sampled = []
         for cat, cat_data in input_data.groupby(self.grouping_variable):
+                # starti = time.time()
                 if cat_data.shape[0] < n_steps:
                     sampled_cat_data = self._pad_ts(pandas_df=cat_data,
                                                     desired_len=n_steps,
@@ -200,7 +210,11 @@ class TimeSeries(Dataset):
                 if verbose:
                     logger.debug('Sampled data for {}'.format(cat))
                     logger.debug(sampled_cat_data)
+                # endi = time.time()
+                # print('sampled i time:', endi-starti)
         rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
+        # end2 = time.time()
+        # print('rnn_output time:', end2 - end1)
 
         if self.scaler:
             batch_scaler = self.scaler()
@@ -212,7 +226,64 @@ class TimeSeries(Dataset):
             rnn_output['feature_1'] = batch_scaler.fit_transform(rnn_output.feature_1.values.reshape(n_rows, 1)).reshape(n_rows)
             rnn_output[target_var] = batch_scaler.fit_transform(rnn_output[target_var].values.reshape(n_rows, 1)).reshape(n_rows)
 
+        # end = time.time()
+        # print('next_batch time:', end-start)
+
         return rnn_output.drop(target_var, 1).as_matrix().reshape(batch_size, n_steps, -1), \
                rnn_output[target_var].as_matrix().reshape(batch_size, n_steps, 1)
 
+    def get_set(self, selected_group, n_steps,
+                   target_var='target', verbose=False,
+                   padding_value=0):
+        """
+        :param n_steps: how many RNN cells (int)
+        :param target_var: (str)
+        :param verbose: (boolean)
+        :param padding_value: (float)
+        :return: X (feature space), y
+        """
 
+        # start = time.time()
+        # Select n_batch time series
+        selected_groups = [selected_group]
+        input_data = self.data[self.data[self.grouping_variable].isin(set(selected_groups))]
+
+        # end1 = time.time()
+        # print('input_data time:', end1 - start)
+
+        # Initial padding for each selected time series to reach n_steps
+        sampled = []
+        for cat, cat_data in input_data.groupby(self.grouping_variable):
+                # starti = time.time()
+                if cat_data.shape[0] < n_steps:
+                    sampled_cat_data = self._pad_ts(pandas_df=cat_data,
+                                                    desired_len=n_steps,
+                                                    padding_val=padding_value)
+                else:
+                    sampled_cat_data = self._sample_ts(pandas_df=cat_data,
+                                                       desired_len=n_steps)
+                sampled.append(sampled_cat_data)
+                if verbose:
+                    logger.debug('Sampled data for {}'.format(cat))
+                    logger.debug(sampled_cat_data)
+                # endi = time.time()
+                # print('sampled i time:', endi-starti)
+        rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
+        # end2 = time.time()
+        # print('rnn_output time:', end2 - end1)
+
+        if self.scaler:
+            batch_scaler = self.scaler()
+            n_rows = rnn_output.shape[0]
+            # Scaling will have to be extended to handle multiple variables!
+            rnn_output['feature_1'] = rnn_output.feature_1.astype('float')
+            rnn_output[target_var] = rnn_output[target_var].astype('float')
+
+            rnn_output['feature_1'] = batch_scaler.fit_transform(rnn_output.feature_1.values.reshape(n_rows, 1)).reshape(n_rows)
+            rnn_output[target_var] = batch_scaler.fit_transform(rnn_output[target_var].values.reshape(n_rows, 1)).reshape(n_rows)
+
+        # end = time.time()
+        # print('next_batch time:', end-start)
+
+        return rnn_output.drop(target_var, 1).as_matrix().reshape(1, n_steps, -1), \
+               rnn_output[target_var].as_matrix().reshape(1, n_steps, 1)
