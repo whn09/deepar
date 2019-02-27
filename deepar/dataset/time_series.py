@@ -145,17 +145,17 @@ class TimeSeries(Dataset):
         # Initial padding for each selected time series to reach n_steps
         sampled = []
         for cat, cat_data in input_data.groupby(self.grouping_variable):
-                if cat_data.shape[0] < n_steps:
-                    sampled_cat_data = self._pad_ts(pandas_df=cat_data,
-                                                    desired_len=n_steps,
-                                                    padding_val=padding_value)
-                else:
-                    sampled_cat_data = self._sample_ts(pandas_df=cat_data,
-                                                       desired_len=n_steps)
-                sampled.append(sampled_cat_data)
-                if verbose:
-                    logger.debug('Sampled data for {}'.format(cat))
-                    logger.debug(sampled_cat_data)
+            if cat_data.shape[0] < n_steps:
+                sampled_cat_data = self._pad_ts(pandas_df=cat_data,
+                                                desired_len=n_steps,
+                                                padding_val=padding_value)
+            else:
+                sampled_cat_data = self._sample_ts(pandas_df=cat_data,
+                                                   desired_len=n_steps)
+            sampled.append(sampled_cat_data)
+            if verbose:
+                logger.debug('Sampled data for {}'.format(cat))
+                logger.debug(sampled_cat_data)
         rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
 
         if self.scaler:
@@ -198,20 +198,20 @@ class TimeSeries(Dataset):
         # Initial padding for each selected time series to reach n_steps
         sampled = []
         for cat, cat_data in input_data.groupby(self.grouping_variable):
-                # starti = time.time()
-                if cat_data.shape[0] < n_steps:
-                    sampled_cat_data = self._pad_ts(pandas_df=cat_data,
-                                                    desired_len=n_steps,
-                                                    padding_val=padding_value)
-                else:
-                    sampled_cat_data = self._sample_ts(pandas_df=cat_data,
-                                                       desired_len=n_steps)
-                sampled.append(sampled_cat_data)
-                if verbose:
-                    logger.debug('Sampled data for {}'.format(cat))
-                    logger.debug(sampled_cat_data)
-                # endi = time.time()
-                # print('sampled i time:', endi-starti)
+            # starti = time.time()
+            if cat_data.shape[0] < n_steps:
+                sampled_cat_data = self._pad_ts(pandas_df=cat_data,
+                                                desired_len=n_steps,
+                                                padding_val=padding_value)
+            else:
+                sampled_cat_data = self._sample_ts(pandas_df=cat_data,
+                                                   desired_len=n_steps)
+            sampled.append(sampled_cat_data)
+            if verbose:
+                logger.debug('Sampled data for {}'.format(cat))
+                logger.debug(sampled_cat_data)
+            # endi = time.time()
+            # print('sampled i time:', endi-starti)
         rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
         # end2 = time.time()
         # print('rnn_output time:', end2 - end1)
@@ -254,20 +254,20 @@ class TimeSeries(Dataset):
         # Initial padding for each selected time series to reach n_steps
         sampled = []
         for cat, cat_data in input_data.groupby(self.grouping_variable):
-                # starti = time.time()
-                if cat_data.shape[0] < n_steps:
-                    sampled_cat_data = self._pad_ts(pandas_df=cat_data,
-                                                    desired_len=n_steps,
-                                                    padding_val=padding_value)
-                else:
-                    sampled_cat_data = self._sample_ts(pandas_df=cat_data,
-                                                       desired_len=n_steps)
-                sampled.append(sampled_cat_data)
-                if verbose:
-                    logger.debug('Sampled data for {}'.format(cat))
-                    logger.debug(sampled_cat_data)
-                # endi = time.time()
-                # print('sampled i time:', endi-starti)
+            # starti = time.time()
+            if cat_data.shape[0] < n_steps:
+                sampled_cat_data = self._pad_ts(pandas_df=cat_data,
+                                                desired_len=n_steps,
+                                                padding_val=padding_value)
+            else:
+                sampled_cat_data = self._sample_ts(pandas_df=cat_data,
+                                                   desired_len=n_steps)
+            sampled.append(sampled_cat_data)
+            if verbose:
+                logger.debug('Sampled data for {}'.format(cat))
+                logger.debug(sampled_cat_data)
+            # endi = time.time()
+            # print('sampled i time:', endi-starti)
         rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
         # end2 = time.time()
         # print('rnn_output time:', end2 - end1)
